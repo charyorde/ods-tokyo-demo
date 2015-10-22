@@ -1,0 +1,39 @@
+#!/usr/bin/python
+
+import subprocess
+import yaml
+import os
+import sys
+
+cmd_out = subprocess.check_output(['neutron', 'net-list'])
+
+try:
+    net_id = os.environ['NET_ID']
+except KeyError:
+    net_id = None
+
+if net_id:
+    # Use OSCI / Jenkins environment variable if defined.
+    print 'Using NET_ID environment variable: {}'.format(net_id)
+else:
+    # Preserve existing default behavior (eg. manual testing)
+    net_name = os.environ['OS_USERNAME'] + '_admin_net'
+    print 'Using default network name: {}'.format(net_name)
+    for line in cmd_out.split('\n'):
+        if net_name in line:
+            net_id = line.split('|')[1].replace(' ','')
+
+
+service = sys.argv[1]
+
+service_config = yaml.load(subprocess.check_output(['juju', 'status', service]))
+
+uuids = []
+for machine in service_config['machines']:
+    uuids.append(service_config['machines'][machine]['instance-id'])
+
+if len(uuids) > 0:
+    for uuid in uuids:
+        subprocess.check_call(['nova', 'interface-attach', '--net-id', net_id, uuid])
+
+subprocess.check_call(['juju', 'set', service , 'ext-port=eth1'])

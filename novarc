@@ -1,0 +1,11 @@
+#!/bin/bash
+export OS_USERNAME=admin
+export OS_PASSWORD=openstack
+export OS_TENANT_NAME=admin
+export OS_REGION_NAME=RegionOne
+
+# Determine the keystone IP address
+KEYSTONE_IP=$(juju get keystone | python -c "import subprocess, sys, yaml; t = yaml.safe_load('\n'.join(sys.stdin.readlines())); vip = t['settings']['vip']['value']; keystone_ip = vip if vip else subprocess.check_call('juju-deployer -f keystone'); print keystone_ip")
+
+export OS_AUTH_URL=${OS_AUTH_PROTOCOL:-http}://$KEYSTONE_IP:5000/v2.0
+

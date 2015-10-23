@@ -32,133 +32,175 @@ openstack-services:
       charm: cs:trusty/ubuntu
       num_units: 3
       constraints: "tags=os-api"
+      annotations: 
+        gui-x: "-265"
+        gui-y: "-102.7949192431123"
 
     os-compute:
       charm: cs:trusty/ubuntu
       num_units: 2
       constraints: "tags=os-compute"
+      annotations: 
+        gui-x: "-508.99993896484375"
+        gui-y: "-98.1152422706632"
 
     ntp:
       charm: cs:trusty/ntp
+      annotations: 
+        "gui-x": "791.8367919921875"
+        "gui-y": "728.962297631577"
 
     percona:
-      charm: cs:trusty/percona-cluster
+      charm: cs:~openstack-charmers-next/trusty/percona-cluster
       num_units: 3
       options:
         dataset-size: 50%
         max-connections: 20000
         vip: 10.230.58.2
         vip_cidr: 21
+      annotations: 
+        "gui-x": "888.7557373046875"
+        "gui-y": "459.1041843798311"
       to: *api-node-containers
 
     percona-hacluster:
-      charm: cs:trusty/hacluster
+      charm: cs:~openstack-charmers-next/trusty/hacluster
       options:
         cluster_count: 3
         corosync_transport: udpu
         corosync_key: "3r8Y1zILzqADvJB7eLJGPrCI4g5Tg+uZ0+qq1kXNe0273yZlee9k2VT1twsyaSx3tNDDIcfuM/ykQNFRLw6dOWdXPbzgqIM5M5FExYQlXv2+s3kowRL0xuanVWXucaKu+t3jDDxmVnhj0SY/ixl3Gg0XrW4qXFoK05uMoIhK8Js="
+      annotations: 
+        "gui-x": "923"
+        "gui-y": "486.52546481959484"
 
     rabbitmq-server:
-      charm: cs:trusty/rabbitmq-server
-      num_units: 3
+      charm: cs:~openstack-charmers-next/trusty/rabbitmq-server
+      num_units: 1
+      annotations: 
+        "gui-x": "1229.6678466796875"
+        "gui-y": "491.0029323193878"
       to: *api-node-containers
 
     ceph:
-      charm: cs:trusty/ceph
+      charm: cs:~openstack-charmers-next/trusty/ceph
       num_units: 3
       options:
         fsid: 6547bd3e-1397-11e2-82e5-53567c8d32dc
         monitor-secret: AQCXrnZQwI7KGBAAiPofmKEXKxu5bUzoYLVkbQ==
         osd-devices: /dev/sda
         osd-reformat: "yes"
+      annotations: 
+        "gui-x": "218"
+        "gui-y": "895.884757729337"
       to: *api-nodes
 
     ceph-osd:
-      charm: cs:trusty/ceph-osd
+      charm: cs:~openstack-charmers-next/trusty/ceph-osd
       num_units: 2
       options:
         osd-devices: /dev/sdb /dev/sdc /dev/sdd
         osd-reformat: "yes"
+      annotations: 
+        "gui-x": "-22"
+        "gui-y": "877.2949192431122"
       to: *compute-nodes
 
     swift-proxy:
-      charm: cs:trusty/swift-proxy
-      num_units: 3
+      charm: cs:~openstack-charmers-next/trusty/swift-proxy
       options:
         zone-assignment: manual
         replicas: 3
         swift-hash: fdfef9d4-8b06-11e2-8ac0-531c923c8fae
         vip: 10.230.58.3
-      to: *api-node-containers
-
-    swift-proxy-hacluster:
-      charm: cs:trusty/hacluster
-      options:
-        cluster_count: 3
-        corosync_transport: udpu
-        corosync_key: "9aNUFk+o0Hqt/6i46ltcycMogHm+bgOkhsIwBwuXX3YQZfvioZZZqggi9R9Ccj1OqIrxLA+GTstghYcc/hjULhIl3BIX6HAdePhX7sI8khTCiPTN/w4MIy3nW1CjFaeWW31CIhrXnTcq11l0MEB3vKNlN5/b7/kqvagB6oSjw4S="
+      annotations: 
+        "gui-x": "1781.3218994140625"
+        "gui-y": "930.3396075050382"
+      to:
+        - "lxc:os-api=0"
 
     swift-storage-z1:
-      charm: cs:trusty/swift-storage
+      charm: cs:~openstack-charmers-next/trusty/swift-storage
       options:
         zone: 1
         block-device: /dev/sdb
         overwrite: "true"
+      annotations: 
+        "gui-x": "1584.3846435546875"
+        "gui-y": "1272.8251926806124"
       to:
         - "os-api=0"
 
     swift-storage-z2:
-      charm: cs:trusty/swift-storage
+      charm: cs:~openstack-charmers-next/trusty/swift-storage
       options:
         zone: 2
         block-device: /dev/sdb
         overwrite: "true"
+      annotations: 
+        "gui-x": "1804.2655029296875"
+        "gui-y": "1273.8845241162628"
       to:
         - "os-api=1"
 
     swift-storage-z3:
-      charm: cs:trusty/swift-storage
+      charm: cs:~openstack-charmers-next/trusty/swift-storage
       options:
         zone: 3
         block-device: /dev/sdb
         overwrite: "true"
+      annotations: 
+        "gui-x": "2018.99951171875"
+        "gui-y": "1269.95739482905"
       to:
         - "os-api=2"
 
     keystone:
-      charm: cs:trusty/keystone
+      charm: cs:~openstack-charmers-next/trusty/keystone
       num_units: 3
       options:
         admin-password: openstack
         admin-token: ubuntutesting
         vip: 10.230.58.4
         vip_cidr: 21
+      annotations: 
+        "gui-x": "1517.687255859375"
+        "gui-y": "667.184648705796"
       to: *api-node-containers
 
     keystone-hacluster:
-      charm: cs:trusty/hacluster
+      charm: cs:~openstack-charmers-next/trusty/hacluster
       options:
         cluster_count: 3
         corosync_transport: udpu
         corosync_key: "6aVson6XvaprzAppLB6UA4OUgZIyNtW+qVwbanQta0aLMagwbPNomTniLr3ZyVGtEL7A0c48tJvaA+lafL2HzGq+43/aKnUbG5k7d4sKaQXP/sKLhCpyj+04DddBRAVsBJ6r9tG45CGF+H+qUykL1rOT0EesZhDqBiBGrV+DXes="
+      annotations: 
+        "gui-x": "1547.6827392578125"
+        "gui-y": "690.4257333742823"
 
     openstack-dashboard:
-      charm: cs:trusty/openstack-dashboard
+      charm: cs:~openstack-charmers-next/trusty/openstack-dashboard
       num_units: 3
       options:
         vip: 10.230.58.5
         vip_cidr: 21
+        ubuntu-theme: "no"
+      annotations: 
+        "gui-x": "1805.5"
+        "gui-y": "-278.47453518040516"
       to: *api-node-containers
 
     openstack-dashboard-hacluster:
-      charm: cs:trusty/hacluster
+      charm: cs:~openstack-charmers-next/trusty/hacluster
       options:
         cluster_count: 3
         corosync_transport: udpu
         corosync_key: "9aNUFk+o0Hqt/6i46ltcycMogHm+bgOkhsIwBwuXX3YQZfvioZZZqggi9R9Ccj1OqIrxLA+GTstghYcc/hjULhIl3BIX6HAdePhX7sI8khTCiPTN/w4MIy3nW1CjFaeWW31CIhrXnTcq11l0MEB3vKNlN5/b7/kqvagB6oSjw4s="
+      annotations: 
+        "gui-x": "1843"
+        "gui-y": "-244.88469669418055"
 
     nova-compute:
-      charm: cs:trusty/nova-compute
+      charm: cs:~openstack-charmers-next/trusty/nova-compute
       num_units: 2
       options:
         enable-live-migration: True
@@ -168,86 +210,69 @@ openstack-services:
       to: *compute-nodes
 
     nova-cloud-controller:
-      charm: cs:trusty/nova-cloud-controller
+      charm: cs:~openstack-charmers-next/trusty/nova-cloud-controller
       num_units: 3
       options:
         network-manager: Neutron
         quantum-security-groups: "yes"
         vip: 10.230.58.6
         vip_cidr: 21
+      annotations: 
+        "gui-x": "593"
+        "gui-y": "12.615303305819452"
       to: *api-node-containers
 
     nova-cloud-controller-hacluster:
-      charm: cs:trusty/hacluster
+      charm: cs:~openstack-charmers-next/trusty/hacluster
       options:
         cluster_count: 3
         corosync_transport: udpu
         corosync_key: "xZP7GDWV0e8Qs0GxWThXirNNYlScgi3sRTdZk/IXKDqkNFcwdCWfRQnqrHU/6mb6sz6OIoZzX2MtfMQIDcXuPqQyvKuv7YbRyGHmQwAWDUA4ed759VWAO39kHkfWp9y5RRk/wcHakTcWYMwm70upDGJEP00YT3xem3NQy27AC1w="
+      annotations: 
+        "gui-x": "618"
+        "gui-y": "46.525464819594845"
 
     neutron-gateway:
-      charm: cs:trusty/neutron-gateway
-      num_units: 3
+      charm: cs:~openstack-charmers-next/trusty/neutron-gateway
+      num_units: 2
       options:
         ext-port: eth1
         instance-mtu: 1300
       constraints: "tags=virtual"
+      annotations: 
+        "gui-x": "1265.5"
+        "gui-y": "-1.29491924311219"
 
     cinder:
-      charm: cs:trusty/cinder
-      num_units: 3
+      charm: cs:~openstack-charmers-next/trusty/cinder
+      num_units: 1
       options:
         block-device: "None"
         glance-api-version: 2
-        vip: 10.230.58.7
-        vip_cidr: 21
-      to: *api-nodes
-
-    cinder-hacluster:
-      charm: cs:trusty/hacluster
-      options:
-        cluster_count: 3
-        corosync_transport: udpu
-        corosync_key: "wllBMGAfdCsotmXGbCbJ0LhAuOPQ9ZEIIAXIWWeNLwrmC7C9jmm92RSL1kYGCRRWaL7W7AziA6aBy//rZxeZ3z0YkM0QFD+4Vg7vtM6JaBoOFlJgVd6mbYUfVbI6IMqGiUDJ8hh5sKmN7kwQLNNwASGlJiMo5s9ErWviVM6/OrQ="
-
-    cinder-ceph:
-      charm: cs:trusty/cinder-ceph
-
-    glance:
-      charm: cs:trusty/glance
-      num_units: 3
-      options:
-        vip: 10.230.58.8
-        vip_cidr: 21
-      to: *api-node-containers
-
-    glance-hacluster:
-      charm: cs:trusty/hacluster
-      options:
-        cluster_count: 3
-        corosync_transport: udpu
-        corosync_key: "eO34WuxbQ/FaQvYb/ffTtX+0phNfNZlmhRrC8gLYJMf/b52Ny3cRXjgp5P1lEfZFHjrhQ3lWQOqENuBVcejS1OYt574Xq2l1XLEHoEPbktovDhaS9yxIU7SYULdlx7j/BNtW7evY0pRBr23MYWEI3hETHVdtOeqgW1IB3zgoyco="
-
-    heat:
-      charm: cs:trusty/heat
-      to: "lxc:os-api=0"
-
-    ceilometer:
-      charm: cs:trusty/ceilometer
-      to:
-        - "lxc:os-api=2"
-
-    ceilometer-agent:
-      charm: cs:trusty/ceilometer-agent
-
-    mongodb:
-      charm: cs:trusty/mongodb
+      annotations: 
+        "gui-x": "213"
+        "gui-y": "645.1152422706632"
       to:
         - "lxc:os-api=1"
+
+    cinder-ceph:
+      charm: cs:~openstack-charmers-next/trusty/cinder-ceph
+      annotations: 
+        "gui-x": "-4.5"
+        "gui-y": "638.7050807568878"
+
+    glance:
+      charm: cs:~openstack-charmers-next/trusty/glance
+      annotations: 
+        "gui-x": "315.5"
+        "gui-y": "222.2949192431123"
+      to:
+        - "lxc:os-api=2"
 
     juju-gui:
       charm: "cs:trusty/juju-gui"
       to:
-        - "lxc:os-api=0"
+        - "lxc:os-api=2"
 
   relations:
     - [ keystone, percona ]
@@ -278,15 +303,6 @@ openstack-services:
     - [ swift-proxy, swift-storage-z1 ]
     - [ swift-proxy, swift-storage-z2 ]
     - [ swift-proxy, swift-storage-z3 ]
-    - - ceilometer
-      - keystone:identity-service
-    - [ ceilometer, rabbitmq-server ]
-    - [ ceilometer, mongodb ]
-    - [ ceilometer-agent, nova-compute ]
-    - [ ceilometer-agent, ceilometer ]
-    - [ heat, percona ]
-    - [ heat, keystone ]
-    - [ heat, rabbitmq-server ]
     - - ceph-osd:mon
       - ceph:osd
     - - ntp:juju-info
@@ -299,10 +315,7 @@ openstack-services:
     - [ percona, percona-hacluster ]
     - [ keystone, keystone-hacluster ]
     - [ nova-cloud-controller, nova-cloud-controller-hacluster ]
-    - [ glance, glance-hacluster ]
-    - [ cinder, cinder-hacluster ]
     - [ openstack-dashboard, openstack-dashboard-hacluster ]
-    - [ swift-proxy, swift-proxy-hacluster ]
 
 
 openstack-singlerabbit:
@@ -314,16 +327,17 @@ openstack-icehouse:
   inherits: openstack-singlerabbit
   services:
     neutron-api:
-      charm: cs:trusty/neutron-api
+      charm: cs:~openstack-charmers-next/trusty/neutron-api
       options:
         neutron-security-groups: True
         # Lab doesn't have 2 attached nics per compute, so can't enable dvr
         # enable-dvr: False
         enable-l3ha: True
-      to: *api-node-containers
+      to:
+        - "os-api=1"
 
     neutron-openvswitch:
-      charm: cs:trusty/neutron-openvswitch
+      charm: cs:~openstack-charmers-next/trusty/neutron-openvswitch
   relations:
   - [ neutron-api, percona ]
   - [ neutron-api, rabbitmq-server ]
@@ -334,39 +348,13 @@ openstack-icehouse:
   - [ neutron-openvswitch, nova-compute ]
   - [ neutron-openvswitch, rabbitmq-server ]
 
-openstack-icehouse-msg-split:
-  inherits: openstack-services
-  services:
-    neutron-api:
-      charm: cs:trusty/neutron-api
-      options:
-        neutron-security-groups: True
-
-    neutron-openvswitch:
-      charm: cs:trusty/neutron-openvswitch
-
-    rabbitmq-server-neutron:
-      charm: cs:trusty/rabbitmq-server
-
-  relations:
-  - [ neutron-api, percona ]
-  - [ neutron-api, rabbitmq-server-neutron ]
-  - [ neutron-api, nova-cloud-controller ]
-  - [ neutron-api, neutron-openvswitch ]
-  - [ neutron-api, keystone ]
-  - [ neutron-api, neutron-gateway ]
-  - [ neutron-openvswitch, nova-compute ]
-  - [ neutron-openvswitch, rabbitmq-server-neutron ]
-  - [ "neutron-gateway:amqp-nova", rabbitmq-server ]
-  - [ "neutron-gateway:amqp", rabbitmq-server-neutron ]
-
 # icehouse
 precise-icehouse:
   inherits: openstack-singlerabbit
   series: precise
   services:
     percona:
-      charm: cs:trusty/percona
+      charm: cs:~openstack-charmers-next/trusty/percona
   overrides:
     openstack-origin: cloud:precise-icehouse
     source: cloud:precise-icehouse
@@ -387,9 +375,6 @@ precise-icehouse-trunk:
     source: ppa:openstack-ubuntu-testing/icehouse
 trusty-icehouse:
   inherits: openstack-icehouse
-  series: trusty
-trusty-icehouse-msg-split:
-  inherits: openstack-icehouse-msg-split
   series: trusty
 trusty-icehouse-proposed:
   inherits: trusty-icehouse
@@ -449,7 +434,7 @@ vivid-kilo:
   series: vivid
   services:
     percona:
-      charm: cs:trusty/percona
+      charm: cs:~openstack-charmers-next/trusty/percona
 vivid-kilo-proposed:
   inherits: vivid-kilo
   overrides:
@@ -477,7 +462,7 @@ wily-liberty:
   series: wily
   services:
     percona:
-      charm: cs:trusty/percona
+      charm: cs:~openstack-charmers-next/trusty/percona
 wily-liberty-proposed:
   inherits: wily-liberty
   overrides:

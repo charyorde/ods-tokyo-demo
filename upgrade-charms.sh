@@ -1,15 +1,10 @@
 #!/bin/bash
 
-juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/ceilometer ceilometer
-juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/ceilometer-agent ceilometer-agent
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/ceph ceph
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/ceph-osd ceph-osd
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/cinder cinder
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/cinder-ceph cinder-ceph
-juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/hacluster cinder-hacluster
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/glance glance
-juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/hacluster glance-hacluster
-juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/heat heat
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/keystone keystone
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/hacluster keystone-hacluster
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/neutron-api neutron-api
@@ -24,7 +19,6 @@ juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/percona-cluster p
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/hacluster percona-hacluster
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/rabbitmq-server rabbitmq-server
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/swift-proxy swift-proxy
-juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/hacluster swift-proxy-hacluster
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/swift-storage swift-storage-z1
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/swift-storage swift-storage-z2
 juju upgrade-charm --switch cs:~openstack-charmers-next/trusty/swift-storage swift-storage-z3

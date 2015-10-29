@@ -22,5 +22,9 @@ sudo service plexmediaserver start
 
 # Download some movies. The rest is client side configuration unfortunately.
 mkdir -p /media/Movies
+chown ubuntu:ubuntu /media/Movies
 HTTPS_PROXY=http://squid.internal:3192 wget -O "/media/Movies/Elephants Dream (2006).mp4" https://archive.org/download/ElephantsDream/ed_1024_512kb.mp4
 
+# Now create the Movie stream
+# Note: the dummy parameter is to force the post
+curl 'http://localhost:32400/library/sections?type=movie&agent=com.plexapp.agents.imdb&scanner=Plex+Movie+Scanner&language=en&name=Movies&location=%2Fmedia%2FMovies' --data foo=bar

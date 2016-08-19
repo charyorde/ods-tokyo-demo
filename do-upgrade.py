@@ -49,7 +49,7 @@ class Juju(dict):
             return False
 
     @classmethod
-    def run_action(self, service, action):
+    def run_action(cls, service, action):
         try:
             cmd = ['juju', 'action', 'do', service, action]
             output = subprocess.check_output(cmd)
@@ -59,7 +59,7 @@ class Juju(dict):
             raise e
 
     @classmethod
-    def enumerate_actions(self, service):
+    def enumerate_actions(cls, service):
         try:
             cmd = ['juju', 'action', 'defined', service]
             output = subprocess.check_output(cmd)
@@ -92,6 +92,13 @@ class Juju(dict):
         output = subprocess.check_output(cmd)
         parsed = yaml.safe_load(output)
         return Juju(parsed)
+
+    @classmethod
+    def run_on_service(cls, service, command):
+        cmd = ['juju', 'run', '--service', service, command]
+        output = subprocess.check_output(cmd)
+        parsed = yaml.safe_load(output)
+        return parsed
 
 
 class Service(dict):
@@ -199,12 +206,27 @@ SERVICES = [
     # Note: just upgrade cinder service.
     'cinder',
 
+    # Upgrade the ceph cluster
+    'ceph',
+
     # Swift Storage Upgrade
     'swift-proxy',
     'swift-storage-z1',
     'swift-storage-z2',
     'swift-storage-z3',
+
+    # Upgrade heat
+    'heat',
 ]
+
+# Not all charms use the openstack-origin. The openstack specific
+# charms do, but some of the others use an alternate origin key
+# depending on who the author was.
+ORIGIN_KEYS = {
+    'ceph': 'source',
+    'ceph-osd': 'source',
+    'ceph-mon': 'source',
+}
 
 
 def is_rollable(service):
@@ -215,8 +237,13 @@ def is_rollable(service):
                               that should be tested for rollable upgrades
     :return <bool>: True if the service is rollable, false if not.
     """
-    if not service.has_relation('ha'):
-        # If there's no hacluster relation, no need to do the rolling
+    if 'openstack-upgrade' not in Juju.enumerate_actions(service.name):
+        # If the service does not have an openstack-upgrade action,
+        # then the service cannot be upgraded in a rollable fashion.
+        return False
+
+    if len(service.units()) <= 1:
+        # If there's not multiple units, no need to do the rolling
         # upgrade. Go for the big bang.
         return False
 
@@ -225,6 +252,33 @@ def is_rollable(service):
         return False
 
     return True
+
+
+def order_units(service, units):
+    """Orders the units by ensuring that the leader is the first unit.
+
+    Queries Juju in order to determine which unit is the leader, and
+    places that unit at the top of the list.
+
+    :param service <Service>: the service to order the units by
+    :param units list<Unit>: the list of units to sort
+    :return list<Unit>: the sorted list of units.
+    """
+    log.info('Determining ordering for service: %s' % service.name)
+    ordered = []
+
+    is_leader_data = Juju.run_on_service(service.name, 'is-leader')
+    leader_info = filter(lambda u: u['Stdout'].strip() == 'True',
+                         is_leader_data)
+    leader_unit = leader_info[0]['UnitId']
+    for unit in units:
+        if unit.name == leader_unit:
+            ordered.insert(0, unit)
+        else:
+            ordered.append(unit)
+
+    log.info('Upgrade order is: %s' % [unit.name for unit in ordered])
+    return ordered
 
 
 def perform_rolling_upgrade(service):
@@ -239,9 +293,10 @@ def perform_rolling_upgrade(service):
     """
     log.info('Performing a rolling upgrade for service: %s' % service.name)
     avail_actions = Juju.enumerate_actions(service.name)
-    service.set_config('openstack-origin', args.origin)
+    config_key = ORIGIN_KEYS.get(service.name, 'openstack-origin')
+    service.set_config(config_key, args.origin)
 
-    for unit in service.units():
+    for unit in order_units(service, service.units()):
         log.info('Upgrading unit: %s' % unit.name)
         if args.pause and 'pause' in avail_actions:
             unit.pause()
@@ -263,7 +318,8 @@ def perform_bigbang_upgrade(service):
     message is reported.
     """
     log.info('Performing a big-bang upgrade for service: %s' % service.name)
-    service.set_config('openstack-origin', args.origin)
+    config_key = ORIGIN_KEYS.get(service.name, 'openstack-origin')
+    service.set_config(config_key, args.origin)
 
     # Give the service a chance to invoke the config-changed hook
     # for the bigbang upgrade.
@@ -281,7 +337,7 @@ def perform_bigbang_upgrade(service):
 def main():
     global args
     parser = argparse.ArgumentParser(description='Upgrades the currently running cloud.')
-    parser.add_argument('-o', '--origin', type=str, default='cloud:trusty-liberty',
+    parser.add_argument('-o', '--origin', type=str, default='cloud:trusty-mitaka',
                         required=False, metavar='origin')
     parser.add_argument('-p', '--pause', type=bool, default=False,
                         required=False, metavar='pause')

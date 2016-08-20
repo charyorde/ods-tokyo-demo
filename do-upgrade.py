@@ -22,11 +22,18 @@ formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
+JUJU_VERSION = 1
+
 
 class Juju(dict):
 
     def get_service(self, name):
-        svc = Service(self['services'][name])
+        if JUJU_VERSION == 1:
+            key = 'services'
+        else:
+            key = 'applications'
+
+        svc = Service(self[key][name])
         svc['name'] = name
         return svc
 
@@ -34,7 +41,10 @@ class Juju(dict):
     def set_config_value(self, service, key, value):
         try:
             setting = '%s=%s' % (key, value)
-            cmd = ['juju', 'set', service, setting]
+            if JUJU_VERSION == 1:
+                cmd = ['juju', 'set', service, setting]
+            else:
+                cmd = ['juju', 'set-config', service, setting]
             subprocess.check_output(cmd)
             return True
         except subprocess.CalledProcessError as e:
@@ -49,9 +59,13 @@ class Juju(dict):
             return False
 
     @classmethod
-    def run_action(cls, service, action):
+    def run_action(cls, unit_name, action):
         try:
-            cmd = ['juju', 'action', 'do', service, action]
+            if JUJU_VERSION == 1:
+                cmd = ['juju', 'action', 'do', unit_name, action]
+            else:
+                cmd = ['juju', 'run-action', unit_name, action]
+                
             output = subprocess.check_output(cmd)
             return output.split(':')[1].strip()
         except subprocess.CalledProcessError as e:
@@ -61,10 +75,27 @@ class Juju(dict):
     @classmethod
     def enumerate_actions(cls, service):
         try:
-            cmd = ['juju', 'action', 'defined', service]
-            output = subprocess.check_output(cmd)
-            actions = yaml.safe_load(output)
-            return actions.keys()
+            if JUJU_VERSION == 1:
+                cmd = ['juju', 'action', 'defined', service]
+                output = subprocess.check_output(cmd)
+                actions = yaml.safe_load(output)
+                return actions.keys()
+            else:
+                # it appears that the yaml output for juju2 actions listing
+                # is broken (everything is in single string)
+                cmd = ['juju', 'actions', service]
+                output = subprocess.check_output(cmd)
+
+                # The output is in table format. Fortunately, the actions are
+                # always in the first column so this code will return the
+                # word in any row where the row is not empty and the row
+                # does not appear to be a table header. If the description
+                # for the action is mildly verbose, then this will include
+                # more actions than desirable, however this script just checks
+                # that an action is defined so this should be 'good enough'
+                actions = [row.split(None, 1)[0] for row in output.split('\n')
+                           if row and not row.startswith('ACTION')]
+                return actions
         except subprocess.CalledProcessError as e:
             log.error(e)
             raise e
@@ -77,7 +108,11 @@ class Juju(dict):
         :return boolean: True if the actino is done, False otherwise.
         """
         try:
-            output = subprocess.check_output(['juju', 'action', 'fetch', act_id])
+            if JUJU_VERSION == 1:
+                cmd = ['juju', 'action', 'fetch', act_id]
+            else:
+                cmd = ['juju', 'show-action-output', act_id]
+            output = subprocess.check_output(cmd)
             results = yaml.safe_load(output)
             return results['status'] in ['completed', 'failed']
         except subprocess.CalledProcessError as e:
@@ -86,16 +121,31 @@ class Juju(dict):
 
     @classmethod
     def current(cls, service=None):
+        global JUJU_VERSION
+        output = subprocess.check_output(['juju', '--version'])
+        if output.strip().startswith('1.'):
+            JUJU_VERSION = 1
+        else:
+            JUJU_VERSION = 2
+
         cmd = ['juju', 'status']
         if service:
-            cmd.extend(service)
+            cmd.append(service)
+
+        if JUJU_VERSION == 2:
+            cmd.append('--format=yaml')
+
         output = subprocess.check_output(cmd)
         parsed = yaml.safe_load(output)
         return Juju(parsed)
 
     @classmethod
     def run_on_service(cls, service, command):
-        cmd = ['juju', 'run', '--service', service, command]
+        if JUJU_VERSION == 1:
+            where = '--service'
+        else:
+            where = '--application'
+        cmd = ['juju', 'run', where, service, command]
         output = subprocess.check_output(cmd)
         parsed = yaml.safe_load(output)
         return parsed
@@ -207,13 +257,9 @@ SERVICES = [
     'cinder',
 
     # Upgrade the ceph cluster
-    'ceph',
-
-    # Swift Storage Upgrade
-    'swift-proxy',
-    'swift-storage-z1',
-    'swift-storage-z2',
-    'swift-storage-z3',
+    'ceph-mon',
+    'ceph-osd',
+    'ceph-radosgw',
 
     # Upgrade heat
     'heat',
@@ -226,6 +272,7 @@ ORIGIN_KEYS = {
     'ceph': 'source',
     'ceph-osd': 'source',
     'ceph-mon': 'source',
+    'ceph-radosgw': 'source',
 }
 
 
